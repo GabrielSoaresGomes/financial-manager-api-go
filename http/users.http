@@ -1,0 +1,18 @@
+### GET Rota para listar todos usuários
+GET {{USERS_V1_HOST}}
+
+> {%
+    client.test("Verificando se retornou código 200 para rota de listagem de usuários", function () {
+        client.assert(response.status === 200, "Status da resposta não é 200");
+    });
+
+    client.test("Verificando se o response é um JSON", function () {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", `Esperava receber 'application/json' porém recebeu: '${type}'`);
+    });
+
+    client.test("Verificando se o JSON retornado é um array", function () {
+        const body = response.body;
+        client.assert(Array.isArray(body), `Esperava que o corpo da resposta fosse um array, porém recebeu: '${typeof body}'`);
+    });
+%}

@@ -1,0 +1,18 @@
+### GET Rota do healthcheck
+GET {{HOST}}/
+
+> {%
+    client.test("Verificando se retornou código 200 para rota de healthcheck", function () {
+        client.assert(response.status === 200, "Status da resposta não é 200");
+    });
+
+    client.test("Verificando se o response é um JSON", function () {
+        const type = response.contentType.mimeType;
+        client.assert(type === "application/json", `Esperava receber 'application/json' porém recebeu: '${type}'`);
+    });
+
+    client.test("Verificando se o JSON retornado contém a chave 'message' com valor 'HEALTHCHECK -> OK'", function () {
+        const body = response.body;
+        client.assert(body.message === "HEALTHCHECK -> OK", `Esperava que a chave 'message' tivesse o valor 'HEALTHCHECK -> OK', porém recebeu: '${body.status}'`);
+    });
+%}
