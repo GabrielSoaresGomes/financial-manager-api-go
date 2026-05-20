@@ -17,6 +17,7 @@ func UsersRoutes(rg *gin.RouterGroup, dbConnection *sql.DB) {
 	usersGroup := rg.Group("/users")
 	{
 		usersGroup.GET("/", userController.GetUsers)
+		usersGroup.GET("/:id", userController.GetUserById)
 		usersGroup.POST("/", userController.CreateUser)
 	}
 }

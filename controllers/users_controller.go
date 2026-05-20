@@ -5,6 +5,7 @@ import (
 	"financial-manager-api/usecases"
 	"financial-manager-api/utils/logger"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,23 @@ func (uc *UsersController) GetUsers(ctx *gin.Context) {
 
 	usersResponse := dtos.FromUsersModelToResponse(users)
 	ctx.JSON(http.StatusOK, usersResponse)
+	return
+}
+
+func (uc *UsersController) GetUserById(ctx *gin.Context) {
+	userId, stringConversionError := strconv.Atoi(ctx.Param("id"))
+	if stringConversionError != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": stringConversionError.Error()})
+		return
+	}
+	userFound, getUserByIdError := uc.usersUsecase.GetUserById(userId)
+	if getUserByIdError != nil {
+		ctx.JSON(http.StatusBadRequest, gin.H{"error": getUserByIdError.Error()})
+		return
+	}
+
+	userResponse := dtos.FromUserModelToResponse(userFound)
+	ctx.JSON(http.StatusOK, userResponse)
 	return
 }
 

@@ -26,6 +26,14 @@ func (uu *UsersUsecase) GetUsers() ([]models.UsersModel, error) {
 	return users, nil
 }
 
+func (uu *UsersUsecase) GetUserById(userId int) (models.UsersModel, error) {
+	userFound, getUserByIdError := uu.repository.GetUserById(userId)
+	if getUserByIdError != nil {
+		return models.UsersModel{}, getUserByIdError
+	}
+	return userFound, nil
+}
+
 func (uu *UsersUsecase) CreateUser(createUserData dtos.UserRequest) (models.UsersModel, error) {
 	hashedPassword, hashPasswordError := crypto.HashPassword(createUserData.Password)
 	if hashPasswordError != nil {

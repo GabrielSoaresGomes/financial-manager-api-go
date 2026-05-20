@@ -17,6 +17,10 @@ GET {{USERS_V1_HOST}}
     });
 %}
 
+### GET Rota para obter um usuário pelo ID
+@userId = 1
+GET {{USERS_V1_HOST}}/{{userId}}
+
 ### POST Rota para criar um novo usuário
 POST {{USERS_V1_HOST}}
 Content-Type: application/json
