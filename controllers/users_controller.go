@@ -3,6 +3,7 @@ package controllers
 import (
 	"financial-manager-api/dtos"
 	"financial-manager-api/usecases"
+	"financial-manager-api/utils/logger"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -33,6 +34,7 @@ func (uc *UsersController) GetUsers(ctx *gin.Context) {
 func (uc *UsersController) CreateUser(ctx *gin.Context) {
 	var createUserData dtos.UserRequest
 	if bindBodyError := ctx.ShouldBindJSON(&createUserData); bindBodyError != nil {
+		logger.L.Errorw("Campo do JSON inválido", "error", bindBodyError)
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": bindBodyError.Error()})
 		return
 	}

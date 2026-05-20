@@ -81,6 +81,10 @@ func (ur *UserRepository) CreateUser(createUserData dtos.UserRequest) (models.Us
 		createUserData.Email, createUserData.Role, createUserData.Password,
 	).Scan(&userObject.ID, &userObject.Name, &userObject.Email, &roleStr, &userObject.CreatedAt, &userObject.UpdatedAt)
 
+	if insertExecError != nil {
+		return models.UsersModel{}, insertExecError
+	}
+
 	switch roleStr {
 	case "admin":
 		userObject.Role = enums.UserRoleAdmin
@@ -90,5 +94,5 @@ func (ur *UserRepository) CreateUser(createUserData dtos.UserRequest) (models.Us
 		return models.UsersModel{}, errors.New("Tipo do usuário é inválido: " + roleStr)
 	}
 
-	return userObject, insertExecError
+	return userObject, nil
 }

@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(make)",
+      "Bash(Copy-Item *)",
+      "PowerShell(choco search *)",
+      "Bash(git config *)",
+      "Bash(go mod *)",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ]
+  }
+}
