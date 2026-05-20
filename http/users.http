@@ -16,3 +16,14 @@ GET {{USERS_V1_HOST}}
         client.assert(Array.isArray(body), `Esperava que o corpo da resposta fosse um array, porém recebeu: '${typeof body}'`);
     });
 %}
+
+### POST Rota para criar um novo usuário
+POST {{USERS_V1_HOST}}
+Content-Type: application/json
+
+{
+  "name": "Gabriel Soares",
+  "email": "gabrielsoares221@gmail.com",
+  "role": "admin",
+  "password": "Senha12345#"
+}
