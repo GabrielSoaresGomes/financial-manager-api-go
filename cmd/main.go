@@ -13,8 +13,8 @@ import (
 )
 
 func main() {
-	if envLoadError := godotenv.Load(".env.local"); envLoadError != nil {
-		fmt.Println("Aviso: .env.local não encontrado, usando variáveis do ambiente")
+	if envLoadError := godotenv.Load(".env"); envLoadError != nil {
+		fmt.Println("Aviso: .env não encontrado, usando variáveis do ambiente")
 	}
 
 	environmentString := os.Getenv("APP_ENVIRONMENT")
