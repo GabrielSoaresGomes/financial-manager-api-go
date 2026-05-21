@@ -6,7 +6,10 @@ import (
 	"financial-manager-api/dtos"
 	"financial-manager-api/enums"
 	"financial-manager-api/models"
+	"financial-manager-api/pkg/app_errors"
 	"financial-manager-api/utils/logger"
+
+	"github.com/lib/pq"
 )
 
 type UserRepository struct {
@@ -27,7 +30,7 @@ func (ur *UserRepository) GetUsers() ([]models.UsersModel, error) {
 	`
 	rows, err := ur.DB.Query(query)
 	if err != nil {
-		return nil, err
+		return nil, app_errors.ErrorInternal(err)
 	}
 	defer func(rows *sql.Rows) {
 		closeRowsError := rows.Close()
@@ -51,15 +54,10 @@ func (ur *UserRepository) GetUsers() ([]models.UsersModel, error) {
 			&userObject.UpdatedAt,
 		)
 		if err != nil {
-			return nil, err
+			return nil, app_errors.ErrorInternal(err)
 		}
-		switch roleStr {
-		case "admin":
-			userObject.Role = enums.UserRoleAdmin
-		case "user":
-			userObject.Role = enums.UserRoleRole
-		default:
-			return nil, errors.New("Tipo do usuário é inválido: " + roleStr)
+		if err := getRoleByRoleString(roleStr, &userObject); err != nil {
+			return nil, err
 		}
 		usersList = append(usersList, userObject)
 	}
@@ -88,12 +86,14 @@ func (ur *UserRepository) GetUserById(userId int) (models.UsersModel, error) {
 		&userObject.UpdatedAt,
 	)
 	if rowScanError != nil {
-		return models.UsersModel{}, rowScanError
+		if errors.Is(rowScanError, sql.ErrNoRows) {
+			return models.UsersModel{}, app_errors.ErrorNotFound("usuário não encontrado")
+		}
+		return models.UsersModel{}, app_errors.ErrorInternal(rowScanError)
 	}
 
-	getRoleError := getRoleByRoleString(roleStr, &userObject)
-	if getRoleError != nil {
-		return models.UsersModel{}, getRoleError
+	if err := getRoleByRoleString(roleStr, &userObject); err != nil {
+		return models.UsersModel{}, err
 	}
 	return userObject, nil
 }
@@ -113,27 +113,28 @@ func (ur *UserRepository) CreateUser(createUserData dtos.UserRequest) (models.Us
 	).Scan(&userObject.ID, &userObject.Name, &userObject.Email, &roleStr, &userObject.CreatedAt, &userObject.UpdatedAt)
 
 	if insertExecError != nil {
-		return models.UsersModel{}, insertExecError
+		var pqErr *pq.Error
+		if errors.As(insertExecError, &pqErr) && pqErr.Code == "23505" {
+			return models.UsersModel{}, app_errors.ErrorConflict("email já cadastrado")
+		}
+		return models.UsersModel{}, app_errors.ErrorInternal(insertExecError)
 	}
 
-	getRoleError := getRoleByRoleString(roleStr, &userObject)
-	if getRoleError != nil {
-		return models.UsersModel{}, getRoleError
+	if err := getRoleByRoleString(roleStr, &userObject); err != nil {
+		return models.UsersModel{}, err
 	}
 
 	return userObject, nil
 }
 
 func getRoleByRoleString(roleString string, userObject *models.UsersModel) error {
-	var role enums.UserRoleType
 	switch roleString {
 	case "admin":
-		role = enums.UserRoleAdmin
+		userObject.Role = enums.UserRoleAdmin
 	case "user":
-		role = enums.UserRoleRole
+		userObject.Role = enums.UserRoleRole
 	default:
-		return errors.New("Tipo do usuário é inválido: " + roleString)
+		return app_errors.ErrorInternal(errors.New("tipo de usuário inválido: " + roleString))
 	}
-	userObject.Role = role
 	return nil
 }

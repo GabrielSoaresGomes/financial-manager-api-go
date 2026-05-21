@@ -3,6 +3,7 @@ package usecases
 import (
 	"financial-manager-api/dtos"
 	"financial-manager-api/models"
+	"financial-manager-api/pkg/app_errors"
 	"financial-manager-api/pkg/crypto"
 	"financial-manager-api/repositories"
 	"financial-manager-api/utils/logger"
@@ -27,9 +28,9 @@ func (uu *UsersUsecase) GetUsers() ([]models.UsersModel, error) {
 }
 
 func (uu *UsersUsecase) GetUserById(userId int) (models.UsersModel, error) {
-	userFound, getUserByIdError := uu.repository.GetUserById(userId)
-	if getUserByIdError != nil {
-		return models.UsersModel{}, getUserByIdError
+	userFound, err := uu.repository.GetUserById(userId)
+	if err != nil {
+		return models.UsersModel{}, err
 	}
 	return userFound, nil
 }
@@ -41,17 +42,15 @@ func (uu *UsersUsecase) CreateUser(createUserData dtos.UserRequest) (models.User
 			"userEmail", createUserData.Email,
 			"error", hashPasswordError,
 		)
-		return models.UsersModel{}, hashPasswordError
+		return models.UsersModel{}, app_errors.ErrorInternal(hashPasswordError)
 	}
 	createUserData.Password = hashedPassword
+
 	userCreated, createUserError := uu.repository.CreateUser(createUserData)
 	if createUserError != nil {
-		logger.L.Errorw("Erro ao inserir usuário no banco!",
-			"userEmail", createUserData.Email,
-			"error", createUserError,
-		)
 		return models.UsersModel{}, createUserError
 	}
+
 	logger.L.Infow("Usuário criado com sucesso!", "userEmail", createUserData.Email)
 	return userCreated, nil
 }

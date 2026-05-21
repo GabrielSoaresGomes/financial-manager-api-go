@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"financial-manager-api/dtos"
+	"financial-manager-api/pkg/app_errors"
 	"financial-manager-api/usecases"
 	"financial-manager-api/utils/logger"
 	"net/http"
@@ -23,47 +24,42 @@ func NewUserController(usecase usecases.UsersUsecase) UsersController {
 func (uc *UsersController) GetUsers(ctx *gin.Context) {
 	users, err := uc.usersUsecase.GetUsers()
 	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		handleError(ctx, err)
 		return
 	}
 
-	usersResponse := dtos.FromUsersModelToResponse(users)
-	ctx.JSON(http.StatusOK, usersResponse)
-	return
+	ctx.JSON(http.StatusOK, dtos.FromUsersModelToResponse(users))
 }
 
 func (uc *UsersController) GetUserById(ctx *gin.Context) {
-	userId, stringConversionError := strconv.Atoi(ctx.Param("id"))
-	if stringConversionError != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": stringConversionError.Error()})
-		return
-	}
-	userFound, getUserByIdError := uc.usersUsecase.GetUserById(userId)
-	if getUserByIdError != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": getUserByIdError.Error()})
+	userId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		handleError(ctx, app_errors.ErrorBadRequest("id inválido"))
 		return
 	}
 
-	userResponse := dtos.FromUserModelToResponse(userFound)
-	ctx.JSON(http.StatusOK, userResponse)
-	return
+	userFound, err := uc.usersUsecase.GetUserById(userId)
+	if err != nil {
+		handleError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dtos.FromUserModelToResponse(userFound))
 }
 
 func (uc *UsersController) CreateUser(ctx *gin.Context) {
 	var createUserData dtos.UserRequest
 	if bindBodyError := ctx.ShouldBindJSON(&createUserData); bindBodyError != nil {
 		logger.L.Errorw("Campo do JSON inválido", "error", bindBodyError)
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": bindBodyError.Error()})
+		handleError(ctx, app_errors.ErrorBadRequest(bindBodyError.Error()))
 		return
 	}
 
-	createdUser, createUserError := uc.usersUsecase.CreateUser(createUserData)
-	if createUserError != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"error": createUserError.Error()})
+	createdUser, err := uc.usersUsecase.CreateUser(createUserData)
+	if err != nil {
+		handleError(ctx, err)
 		return
 	}
 
-	userResponse := dtos.FromUserModelToResponse(createdUser)
-	ctx.JSON(http.StatusCreated, userResponse)
-	return
+	ctx.JSON(http.StatusCreated, dtos.FromUserModelToResponse(createdUser))
 }
