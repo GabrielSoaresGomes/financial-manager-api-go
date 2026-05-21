@@ -19,8 +19,8 @@ func NewUsersUsecase(repository repositories.UserRepository) UsersUsecase {
 	}
 }
 
-func (uu *UsersUsecase) GetUsers() ([]models.UsersModel, error) {
-	users, err := uu.repository.GetUsers()
+func (uu *UsersUsecase) GetUsers(filter dtos.UserFilter) ([]models.UsersModel, error) {
+	users, err := uu.repository.GetUsers(filter)
 	if err != nil {
 		return nil, err
 	}

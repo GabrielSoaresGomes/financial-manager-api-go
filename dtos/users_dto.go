@@ -22,6 +22,12 @@ type UserRequest struct {
 	Password string             `json:"password"  binding:"required,min=8"`
 }
 
+type UserFilter struct {
+	Name  *string             `form:"name"`
+	Email *string             `form:"email"`
+	Role  *enums.UserRoleType `form:"role"`
+}
+
 func FromUserModelToResponse(userModel models.UsersModel) UserResponse {
 	return UserResponse{
 		ID:        userModel.ID,

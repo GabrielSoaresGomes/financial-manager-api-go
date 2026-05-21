@@ -8,6 +8,7 @@ import (
 	"financial-manager-api/models"
 	"financial-manager-api/pkg/app_errors"
 	"financial-manager-api/utils/logger"
+	"fmt"
 
 	"github.com/lib/pq"
 )
@@ -22,13 +23,35 @@ func NewUserRepository(DB *sql.DB) UserRepository {
 	}
 }
 
-func (ur *UserRepository) GetUsers() ([]models.UsersModel, error) {
+func (ur *UserRepository) GetUsers(filter dtos.UserFilter) ([]models.UsersModel, error) {
 	query := `
 		SELECT id, name, email, password, role, created_at, updated_at
 		FROM users
 		WHERE deleted_at IS NULL
 	`
-	rows, err := ur.DB.Query(query)
+
+	var args []any
+	index := 1
+
+	if filter.Name != nil {
+		query += fmt.Sprintf(" AND name ILIKE $%d", index)
+		args = append(args, "%"+*filter.Name+"%")
+		index++
+	}
+
+	if filter.Email != nil {
+		query += fmt.Sprintf(" AND email ILIKE $%d", index)
+		args = append(args, "%"+*filter.Email+"%")
+		index++
+	}
+
+	if filter.Role != nil {
+		query += fmt.Sprintf(" AND role = $%d", index)
+		args = append(args, *filter.Role)
+		index++
+	}
+
+	rows, err := ur.DB.Query(query, args...)
 	if err != nil {
 		return nil, app_errors.ErrorInternal(err)
 	}
@@ -39,7 +62,7 @@ func (ur *UserRepository) GetUsers() ([]models.UsersModel, error) {
 		}
 	}(rows)
 
-	var usersList []models.UsersModel
+	usersList := make([]models.UsersModel, 0)
 
 	for rows.Next() {
 		var userObject models.UsersModel

@@ -22,7 +22,12 @@ func NewUserController(usecase usecases.UsersUsecase) UsersController {
 }
 
 func (uc *UsersController) GetUsers(ctx *gin.Context) {
-	users, err := uc.usersUsecase.GetUsers()
+	var filter dtos.UserFilter
+	if err := ctx.ShouldBindQuery(&filter); err != nil {
+		handleError(ctx, app_errors.ErrorBadRequest(err.Error()))
+		return
+	}
+	users, err := uc.usersUsecase.GetUsers(filter)
 	if err != nil {
 		handleError(ctx, err)
 		return
