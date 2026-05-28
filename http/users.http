@@ -18,8 +18,8 @@ GET {{USERS_V1_HOST}}
 %}
 
 ### GET Rota para obter um usuário pelo ID
-@userId = 1
-GET {{USERS_V1_HOST}}/{{userId}}
+@getUserUserId = 1
+GET {{USERS_V1_HOST}}/{{getUserUserId}}
 
 ### POST Rota para criar um novo usuário
 POST {{USERS_V1_HOST}}
@@ -30,4 +30,17 @@ Content-Type: application/json
   "email": "gabrielsoares2221@gmail.com",
   "role": "admin",
   "password": "Senha12345#"
+}
+
+
+### PUT Rota para editar um usuário
+@updateUserUserId = 1
+PUT {{USERS_V1_HOST}}/{{updateUserUserId}}
+Content-Type: application/json
+
+{
+  "name": "Gabriel Soares Atualizado",
+  "email": "gabrielsoares221-atualizado@gmail.com",
+  "role": "user",
+  "password": "NovaSenha12345#"
 }

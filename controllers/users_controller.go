@@ -39,7 +39,7 @@ func (uc *UsersController) GetUsers(ctx *gin.Context) {
 func (uc *UsersController) GetUserById(ctx *gin.Context) {
 	userId, err := strconv.Atoi(ctx.Param("id"))
 	if err != nil {
-		handleError(ctx, app_errors.ErrorBadRequest("id inválido"))
+		handleError(ctx, app_errors.ErrorBadRequest("id do usuário é inválido"))
 		return
 	}
 
@@ -67,4 +67,28 @@ func (uc *UsersController) CreateUser(ctx *gin.Context) {
 	}
 
 	ctx.JSON(http.StatusCreated, dtos.FromUserModelToResponse(createdUser))
+}
+
+func (uc *UsersController) UpdateUser(ctx *gin.Context) {
+	userId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		logger.L.Errorw("ID do usuário é inválido", "error", err.Error())
+		handleError(ctx, app_errors.ErrorBadRequest("id do usuário é inválido"))
+		return
+	}
+
+	var updateUserData dtos.UserRequest
+	if bindBodyError := ctx.ShouldBindJSON(&updateUserData); bindBodyError != nil {
+		logger.L.Errorw("Campo do JSON é inválido", "error", bindBodyError)
+		handleError(ctx, app_errors.ErrorBadRequest(bindBodyError.Error()))
+		return
+	}
+
+	updatedUser, err := uc.usersUsecase.UpdateUser(userId, updateUserData)
+	if err != nil {
+		handleError(ctx, err)
+		return
+	}
+
+	ctx.JSON(http.StatusOK, dtos.FromUserModelToResponse(updatedUser))
 }

@@ -150,6 +150,36 @@ func (ur *UserRepository) CreateUser(createUserData dtos.UserRequest) (models.Us
 	return userObject, nil
 }
 
+func (ur *UserRepository) UpdateUser(userId int, data dtos.UserRequest) (models.UsersModel, error) {
+	query := `
+		UPDATE users
+		SET name = $2, email = $3, role = $4, password = $5, updated_at = NOW()
+		WHERE id = $1
+		AND deleted_at IS NULL
+		RETURNING id, name, email, role, created_at, updated_at
+	`
+
+	var userObject models.UsersModel
+	var roleStr string
+	err := ur.DB.QueryRow(query, userId, data.Name, data.Email, data.Role, data.Password).Scan(
+		&userObject.ID, &userObject.Name, &userObject.Email, &roleStr, &userObject.CreatedAt, &userObject.UpdatedAt,
+	)
+
+	if err != nil {
+		var pqErr *pq.Error
+		if errors.As(err, &pqErr) && pqErr.Code == "23505" {
+			return models.UsersModel{}, app_errors.ErrorConflict("email já cadastrado")
+		}
+		return models.UsersModel{}, app_errors.ErrorInternal(err)
+	}
+
+	if err := getRoleByRoleString(roleStr, &userObject); err != nil {
+		return models.UsersModel{}, err
+	}
+
+	return userObject, nil
+}
+
 func getRoleByRoleString(roleString string, userObject *models.UsersModel) error {
 	switch roleString {
 	case "admin":
