@@ -180,6 +180,27 @@ func (ur *UserRepository) UpdateUser(userId int, data dtos.UserRequest) (models.
 	return userObject, nil
 }
 
+func (ur *UserRepository) DeleteUserById(userId int) (int, error) {
+	query := `
+		UPDATE users
+		SET deleted_at = NOW()
+		WHERE id = $1
+		AND deleted_at IS NULL 
+		RETURNING id
+	`
+
+	var deletedUserId int
+	err := ur.DB.QueryRow(query, userId).Scan(&deletedUserId)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return 0, app_errors.ErrorBadRequest("Nenhum usuário com ID informado foi encontrado para apagar")
+		}
+		return 0, app_errors.ErrorInternal(err)
+	}
+
+	return deletedUserId, nil
+}
+
 func getRoleByRoleString(roleString string, userObject *models.UsersModel) error {
 	switch roleString {
 	case "admin":

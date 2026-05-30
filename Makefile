@@ -1,4 +1,7 @@
 .DEFAULT_GOAL := help
+SHELL := C:/Program Files/Git/bin/bash.exe
+.SHELLFLAGS := -c
+
 
 help:
 	@echo "Comandos disponiveis:"
@@ -25,7 +28,7 @@ setup:
 	@echo "Setup concluido! Rode 'make dev' para iniciar."
 
 dev:
-	air
+	go run github.com/air-verse/air
 
 run:
 	go run cmd/main.go

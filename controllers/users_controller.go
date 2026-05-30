@@ -92,3 +92,31 @@ func (uc *UsersController) UpdateUser(ctx *gin.Context) {
 
 	ctx.JSON(http.StatusOK, dtos.FromUserModelToResponse(updatedUser))
 }
+
+func (uc *UsersController) DeleteUserById(ctx *gin.Context) {
+	userId, err := strconv.Atoi(ctx.Param("id"))
+	if err != nil {
+		logger.L.Errorw("ID do usuário é inválido", "error", err.Error())
+		handleError(ctx, app_errors.ErrorBadRequest("id do usuário é inválido"))
+		return
+	}
+
+	if userId <= 0 {
+		logger.L.Errorf("ID do usuário: %d é menor ou igual a 0", userId)
+		handleError(ctx, app_errors.ErrorBadRequest("ID do usuário é inválido"))
+		return
+	}
+
+	deletedUserId, err := uc.usersUsecase.DeleteUserById(userId)
+	if err != nil {
+		handleError(ctx, err)
+		return
+	}
+
+	if deletedUserId <= 0 {
+		handleError(ctx, app_errors.ErrorBadRequest("ID retornado ao apagar usuário é inválido"))
+		return
+	}
+
+	ctx.JSON(http.StatusOK, gin.H{"id": deletedUserId})
+}

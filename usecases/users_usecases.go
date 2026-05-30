@@ -7,6 +7,7 @@ import (
 	"financial-manager-api/pkg/crypto"
 	"financial-manager-api/repositories"
 	"financial-manager-api/utils/logger"
+	"fmt"
 	"strconv"
 )
 
@@ -71,8 +72,21 @@ func (uu *UsersUsecase) UpdateUser(userId int, updateUserData dtos.UserRequest) 
 	if err != nil {
 		stringUserId := strconv.Itoa(userId)
 		logger.L.Errorw("Erro ao editar o usuário de ID "+stringUserId, "error", err.Error())
+		return models.UsersModel{}, err
 	}
 
 	logger.L.Infow("Usuário editado com sucesso!", "userEmail", updateUserData.Email)
 	return updatedUser, nil
+}
+
+func (uu *UsersUsecase) DeleteUserById(userId int) (int, error) {
+	deletedUserId, err := uu.repository.DeleteUserById(userId)
+	if err != nil {
+		formattedString := fmt.Sprintf("Erro ao tentar apagar usuário com ID: %d", userId)
+		logger.L.Errorw(formattedString, "error", err.Error())
+		return 0, err
+	}
+
+	logger.L.Infof("Usuário de ID %d foi deletado com sucesso", deletedUserId)
+	return deletedUserId, nil
 }

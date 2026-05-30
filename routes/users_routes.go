@@ -20,5 +20,6 @@ func UsersRoutes(rg *gin.RouterGroup, dbConnection *sql.DB) {
 		usersGroup.GET("/:id", userController.GetUserById)
 		usersGroup.POST("/", userController.CreateUser)
 		usersGroup.PUT("/:id", userController.UpdateUser)
+		usersGroup.DELETE("/:id", userController.DeleteUserById)
 	}
 }

@@ -44,3 +44,8 @@ Content-Type: application/json
   "role": "user",
   "password": "NovaSenha12345#"
 }
+
+
+### DELETE Rota para apagar um usuário pelo ID
+@deleteUserUserId = 1
+DELETE {{USERS_V1_HOST}}/{{deleteUserUserId}}
